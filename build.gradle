@@ -40,6 +40,8 @@ dependencies {
 	// Database Driver (PostgreSQL)
 	runtimeOnly 'org.postgresql:postgresql'
 
+	implementation 'me.paulschwarz:spring-dotenv:3.0.0'
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
