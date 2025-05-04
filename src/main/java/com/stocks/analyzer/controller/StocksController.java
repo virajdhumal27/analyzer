@@ -1,6 +1,7 @@
 package com.stocks.analyzer.controller;
 
 
+import com.stocks.analyzer.constants.StatusCode;
 import com.stocks.analyzer.exceptions.NoSuchSymbolException;
 import com.stocks.analyzer.exchanges.StockRequestBody;
 import com.stocks.analyzer.exchanges.StockResponseBody;
@@ -9,7 +10,10 @@ import com.stocks.analyzer.models.controllermodels.StockRequest;
 import com.stocks.analyzer.services.stockservices.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(StocksController.ENDPOINT + StocksController.VERSION)
@@ -34,9 +38,10 @@ public class StocksController {
         try {
             CandleCollection candleCollection = stockService.getDailyStocks(stockRequest);
             response.setCandleCollection(candleCollection);
-            response.setStatus("OK");
+            response.setStatus(StatusCode.OK);
         } catch (NoSuchSymbolException e) {
-            response.setStatus("No such symbol present");
+            response.setCandleCollection(new CandleCollection());
+            response.setStatus(StatusCode.NO_SUCH_SYMBOL_PRESENT);
             return ResponseEntity.badRequest().body(response);
         }
 

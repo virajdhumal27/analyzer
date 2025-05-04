@@ -1,20 +1,22 @@
 package com.stocks.analyzer.utils;
 
 import com.stocks.analyzer.constants.Symbols;
-import com.stocks.analyzer.models.Stock;
 import com.stocks.analyzer.models.CandleCollection;
+import com.stocks.analyzer.models.Stock;
 import com.stocks.analyzer.models.alphavantagemodels.AlphavantageStockResponse;
 import com.stocks.analyzer.models.alphavantagemodels.DailyData;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Map;
+import java.util.UUID;
 
 public class StockUtil {
 
     /**
      * Util method to convert response from Alphavantage to StockCollection.
+     *
      * @param alphavantageStockResponse
      * @return <code>StockCollection</code>
      */
@@ -24,7 +26,7 @@ public class StockUtil {
 
         CandleCollection candleCollection = new CandleCollection();
 
-        for (Map.Entry<LocalDate, DailyData> entries: alphavantageStockResponse.getTimeSeries().entrySet()) {
+        for (Map.Entry<LocalDate, DailyData> entries : alphavantageStockResponse.getTimeSeries().entrySet()) {
             LocalDate localDate = entries.getKey();
             DailyData dailyData = entries.getValue();
 

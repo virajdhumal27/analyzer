@@ -3,8 +3,8 @@ package com.stocks.analyzer.services.stockservices;
 import com.stocks.analyzer.constants.Symbols;
 import com.stocks.analyzer.exceptions.NoSuchSymbolException;
 import com.stocks.analyzer.models.Candle;
-import com.stocks.analyzer.models.Stock;
 import com.stocks.analyzer.models.CandleCollection;
+import com.stocks.analyzer.models.Stock;
 import com.stocks.analyzer.models.alphavantagemodels.AlphavantageStockResponse;
 import com.stocks.analyzer.models.controllermodels.StockRequest;
 import com.stocks.analyzer.repositoryservices.HistoricalDataRepositoryService;
@@ -17,11 +17,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AlphavantageStockService implements StockService {
 
     private static final String DAILY = "DAILY";
+    private static final String MONTHLY = "MONTHLY";
+
+    private static final String TIME_SERIES_DAILY = "TIME_SERIES_DAILY";
+    private static final String TIME_SERIES_MONTHLY = "TIME_SERIES_MONTHLY";
 
     @Autowired
     private ExternalFetchApi<AlphavantageStockResponse> alphavantageService;
@@ -62,14 +67,14 @@ public class AlphavantageStockService implements StockService {
         // Check if today's date is equal to latest date from db
         // If true return db value
         // Else, check date how many missing, take account of holidays, add missing data to db and return latest list.
-        if(!historicalCandleCollection.isEmpty()) {
+        if (!historicalCandleCollection.isEmpty()) {
             LocalDateTime latestTimeFromDb = historicalCandleCollection.getCandles().getFirst().getDateTime();
             LocalDateTime marketToday = getLatestMarketDay();
 
             if (!marketToday.isEqual(latestTimeFromDb)) {
                 CandleCollection missingCandles = fetchAndFilterLatestCandles(symbol, function, latestTimeFromDb);
                 saveInDB(missingCandles);
-                historicalCandleCollection.addCandlesInFront(missingCandles.getCandles());
+                historicalCandleCollection.addCandles(missingCandles.getCandles());
             }
             return historicalCandleCollection;
         }
@@ -78,16 +83,23 @@ public class AlphavantageStockService implements StockService {
         saveInDB(candleCollection);
 
         candleCollection.filterBetween(fromDateTime, toDateTime);
+        candleCollection.reverseCollection();
 
         return candleCollection;
     }
 
     private String resolveFunction(String function) {
-        return DAILY.equals(function) ? "TIME_SERIES_DAILY" : function;
+
+        return switch (function) {
+            case DAILY -> TIME_SERIES_DAILY;
+            case MONTHLY -> TIME_SERIES_MONTHLY;
+            default -> function;
+        };
     }
 
     /**
      * Saves in DB
+     *
      * @param candleCollection collection of historical data.
      */
     private void saveInDB(CandleCollection candleCollection) {
@@ -100,6 +112,7 @@ public class AlphavantageStockService implements StockService {
 
     /**
      * Gets the latest market date
+     *
      * @return latest localdatetime
      */
     private LocalDateTime getLatestMarketDay() {
@@ -113,7 +126,8 @@ public class AlphavantageStockService implements StockService {
 
     /**
      * Fetches full series from Alphavantage API
-     * @param symbol <code>Symbols</code> type
+     *
+     * @param symbol   <code>Symbols</code> type
      * @param function Series
      * @return <code>CandleCollection</code>
      */
@@ -124,8 +138,9 @@ public class AlphavantageStockService implements StockService {
 
     /**
      * Fetches and filers candles after given datetime.
-     * @param symbol <code>Symbols</code> type
-     * @param function Series
+     *
+     * @param symbol    <code>Symbols</code> type
+     * @param function  Series
      * @param afterDate Required to filter candles
      * @return <code>CandleCollection</code> after <code>afterdate</code> parameter.
      */
@@ -133,7 +148,8 @@ public class AlphavantageStockService implements StockService {
         CandleCollection fullSeries = fetchFullSeries(symbol, function);
         List<Candle> newCandles = fullSeries.getCandles().stream()
                 .filter(c -> c.getDateTime().isAfter(afterDate))
-                .toList();
+                .sorted(CandleCollection.candleComparator()) // Sorts in ascending order
+                .collect(Collectors.toList());
 
         CandleCollection latestOnly = new CandleCollection();
         latestOnly.addCandles(newCandles);

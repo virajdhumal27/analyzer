@@ -7,7 +7,6 @@ import com.stocks.analyzer.models.controllermodels.StockRequest;
 public interface StockService {
 
     /**
-     *
      * @param request <code>StockRequest</code> type
      * @return <code>CandleCollection</code> in decreasing order of dates.
      * @throws NoSuchSymbolException thrown when Symbol passed is invalid.

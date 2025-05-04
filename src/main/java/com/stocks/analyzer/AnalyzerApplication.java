@@ -9,8 +9,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties({AlphavantageConfig.class})
 public class AnalyzerApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AnalyzerApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AnalyzerApplication.class, args);
+    }
 
 }
